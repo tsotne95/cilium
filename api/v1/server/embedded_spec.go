@@ -3996,7 +3996,7 @@ func init() {
           ]
         },
         "key": {
-          "description": "Map key on which the event occured",
+          "description": "Map key on which the event occurred",
           "type": "string"
         },
         "last-error": {
@@ -4009,7 +4009,7 @@ func init() {
           "format": "date-time"
         },
         "value": {
-          "description": "Map value on which the event occured",
+          "description": "Map value on which the event occurred",
           "type": "string"
         }
       }
@@ -10067,7 +10067,7 @@ func init() {
           ]
         },
         "key": {
-          "description": "Map key on which the event occured",
+          "description": "Map key on which the event occurred",
           "type": "string"
         },
         "last-error": {
@@ -10080,7 +10080,7 @@ func init() {
           "format": "date-time"
         },
         "value": {
-          "description": "Map value on which the event occured",
+          "description": "Map value on which the event occurred",
           "type": "string"
         }
       }
