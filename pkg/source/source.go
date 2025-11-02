@@ -36,6 +36,10 @@ const (
 	// custom resources
 	CustomResource Source = "custom-resource"
 
+	// XDS is the source used for state derived from an external xDS control
+	// plane that programs standalone load balancers.
+	XDS Source = "xds"
+
 	// Kubernetes is the source used for state derived from Kubernetes
 	Kubernetes Source = "k8s"
 
@@ -73,6 +77,7 @@ var defaultSources Sources = []Source{
 	Local,
 	KVStore,
 	CustomResource,
+	XDS,
 	Kubernetes,
 	ClusterMesh,
 	Directory,
