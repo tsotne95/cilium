@@ -960,6 +960,24 @@ const (
 	// PolicyCIDRMatchMode defines the entities that CIDR selectors can reach
 	PolicyCIDRMatchMode = "policy-cidr-match-mode"
 
+	// PolicySharedMapEnabled enables the layered shared policy map pipeline.
+	PolicySharedMapEnabled = "policy-shared-map-enabled"
+
+	// PolicySharedMapMode configures the shared map operating mode (legacy, dual, shared, off).
+	PolicySharedMapMode = "policy-shared-map-mode"
+
+	// PolicySharedMapMaxSharedRefs configures the overlay shared reference budget.
+	PolicySharedMapMaxSharedRefs = "policy-shared-map-max-shared-refs"
+
+	// PolicySharedMapMaxPrivateOverrides configures the overlay private override budget.
+	PolicySharedMapMaxPrivateOverrides = "policy-shared-map-max-private-overrides"
+
+	// PolicySharedMapSharedQuotaPerEndpoint limits per-endpoint shared handle usage.
+	PolicySharedMapSharedQuotaPerEndpoint = "policy-shared-map-quota-per-endpoint"
+
+	// PolicySharedMapMetrics toggles shared/overlay policy map metrics emission.
+	PolicySharedMapMetrics = "policy-shared-map-metrics"
+
 	// EnableNodeSelectorLabels enables use of the node label based identity
 	EnableNodeSelectorLabels = "enable-node-selector-labels"
 
@@ -1850,6 +1868,24 @@ type DaemonConfig struct {
 	// - nodes
 	PolicyCIDRMatchMode []string
 
+	// PolicySharedMapEnabled enables layered shared policy map plumbing when true.
+	PolicySharedMapEnabled bool
+
+	// PolicySharedMapMode controls the shared map operating mode (legacy, dual, shared, off).
+	PolicySharedMapMode string
+
+	// PolicySharedMapMaxSharedRefs limits overlay references into the shared map.
+	PolicySharedMapMaxSharedRefs int
+
+	// PolicySharedMapMaxPrivateOverrides limits overlay private overrides per endpoint.
+	PolicySharedMapMaxPrivateOverrides int
+
+	// PolicySharedMapSharedQuotaPerEndpoint caps how many shared handles a single endpoint may consume.
+	PolicySharedMapSharedQuotaPerEndpoint int
+
+	// PolicySharedMapMetrics enables metrics for shared/overlay policy map usage.
+	PolicySharedMapMetrics bool
+
 	// MaxConnectedClusters sets the maximum number of clusters that can be
 	// connected in a clustermesh.
 	// The value is used to determine the bit allocation for cluster ID and
@@ -1938,13 +1974,19 @@ var (
 
 		K8sEnableLeasesFallbackDiscovery: defaults.K8sEnableLeasesFallbackDiscovery,
 
-		EnableVTEP:                           defaults.EnableVTEP,
-		EnableBGPControlPlane:                defaults.EnableBGPControlPlane,
-		EnableK8sNetworkPolicy:               defaults.EnableK8sNetworkPolicy,
-		EnableCiliumNetworkPolicy:            defaults.EnableCiliumNetworkPolicy,
-		EnableCiliumClusterwideNetworkPolicy: defaults.EnableCiliumClusterwideNetworkPolicy,
-		PolicyCIDRMatchMode:                  defaults.PolicyCIDRMatchMode,
-		MaxConnectedClusters:                 defaults.MaxConnectedClusters,
+		EnableVTEP:                            defaults.EnableVTEP,
+		EnableBGPControlPlane:                 defaults.EnableBGPControlPlane,
+		EnableK8sNetworkPolicy:                defaults.EnableK8sNetworkPolicy,
+		EnableCiliumNetworkPolicy:             defaults.EnableCiliumNetworkPolicy,
+		EnableCiliumClusterwideNetworkPolicy:  defaults.EnableCiliumClusterwideNetworkPolicy,
+		PolicyCIDRMatchMode:                   defaults.PolicyCIDRMatchMode,
+		PolicySharedMapEnabled:                defaults.PolicySharedMapEnabled,
+		PolicySharedMapMode:                   defaults.PolicySharedMapMode,
+		PolicySharedMapMaxSharedRefs:          defaults.PolicySharedMapMaxSharedRefs,
+		PolicySharedMapMaxPrivateOverrides:    defaults.PolicySharedMapMaxPrivateOverrides,
+		PolicySharedMapSharedQuotaPerEndpoint: defaults.PolicySharedMapSharedQuotaPerEndpoint,
+		PolicySharedMapMetrics:                defaults.PolicySharedMapMetrics,
+		MaxConnectedClusters:                  defaults.MaxConnectedClusters,
 
 		BPFDistributedLRU:             defaults.BPFDistributedLRU,
 		BPFEventsDropEnabled:          defaults.BPFEventsDropEnabled,
@@ -2829,6 +2871,12 @@ func (c *DaemonConfig) Populate(logger *slog.Logger, vp *viper.Viper) {
 	// To support K8s NetworkPolicy
 	c.EnableK8sNetworkPolicy = vp.GetBool(EnableK8sNetworkPolicy)
 	c.PolicyCIDRMatchMode = vp.GetStringSlice(PolicyCIDRMatchMode)
+	c.PolicySharedMapEnabled = vp.GetBool(PolicySharedMapEnabled)
+	c.PolicySharedMapMode = vp.GetString(PolicySharedMapMode)
+	c.PolicySharedMapMaxSharedRefs = vp.GetInt(PolicySharedMapMaxSharedRefs)
+	c.PolicySharedMapMaxPrivateOverrides = vp.GetInt(PolicySharedMapMaxPrivateOverrides)
+	c.PolicySharedMapSharedQuotaPerEndpoint = vp.GetInt(PolicySharedMapSharedQuotaPerEndpoint)
+	c.PolicySharedMapMetrics = vp.GetBool(PolicySharedMapMetrics)
 	c.EnableNodeSelectorLabels = vp.GetBool(EnableNodeSelectorLabels)
 	c.NodeLabels = vp.GetStringSlice(NodeLabels)
 

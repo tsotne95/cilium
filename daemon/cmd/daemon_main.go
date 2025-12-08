@@ -812,6 +812,24 @@ func InitGlobalFlags(logger *slog.Logger, cmd *cobra.Command, vp *viper.Viper) {
 	flags.MarkHidden(option.EnableNonDefaultDenyPolicies)
 	option.BindEnv(vp, option.EnableNonDefaultDenyPolicies)
 
+	flags.Bool(option.PolicySharedMapEnabled, defaults.PolicySharedMapEnabled, "Enable layered shared policy map plumbing")
+	option.BindEnv(vp, option.PolicySharedMapEnabled)
+
+	flags.String(option.PolicySharedMapMode, defaults.PolicySharedMapMode, "Shared policy map operating mode: legacy, dual, shared, off")
+	option.BindEnv(vp, option.PolicySharedMapMode)
+
+	flags.Int(option.PolicySharedMapMaxSharedRefs, defaults.PolicySharedMapMaxSharedRefs, "Maximum shared references stored per overlay entry")
+	option.BindEnv(vp, option.PolicySharedMapMaxSharedRefs)
+
+	flags.Int(option.PolicySharedMapMaxPrivateOverrides, defaults.PolicySharedMapMaxPrivateOverrides, "Maximum private overrides stored per overlay entry")
+	option.BindEnv(vp, option.PolicySharedMapMaxPrivateOverrides)
+
+	flags.Int(option.PolicySharedMapSharedQuotaPerEndpoint, defaults.PolicySharedMapSharedQuotaPerEndpoint, "Quota for shared handles consumed per endpoint (0 = auto)")
+	option.BindEnv(vp, option.PolicySharedMapSharedQuotaPerEndpoint)
+
+	flags.Bool(option.PolicySharedMapMetrics, defaults.PolicySharedMapMetrics, "Emit metrics for layered shared policy maps")
+	option.BindEnv(vp, option.PolicySharedMapMetrics)
+
 	flags.Bool(option.EnableEndpointLockdownOnPolicyOverflow, false, "When an endpoint's policy map overflows, shutdown all (ingress and egress) network traffic for that endpoint.")
 	option.BindEnv(vp, option.EnableEndpointLockdownOnPolicyOverflow)
 

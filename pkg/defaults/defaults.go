@@ -23,6 +23,24 @@ const (
 	// AgentHealthPort is the default value for option.AgentHealthPort
 	AgentHealthPort = 9879
 
+	// PolicySharedMapEnabled is the default switch for layered shared policy maps.
+	PolicySharedMapEnabled = false
+
+	// PolicySharedMapMode is the default operating mode for shared policy maps.
+	PolicySharedMapMode = "legacy"
+
+	// PolicySharedMapMaxSharedRefs caps shared references included per overlay entry by default.
+	PolicySharedMapMaxSharedRefs = 16
+
+	// PolicySharedMapMaxPrivateOverrides caps private overrides included per overlay entry by default.
+	PolicySharedMapMaxPrivateOverrides = 8
+
+	// PolicySharedMapSharedQuotaPerEndpoint limits shared usage per endpoint when non-zero.
+	PolicySharedMapSharedQuotaPerEndpoint = 0
+
+	// PolicySharedMapMetrics enables shared/overlay metrics by default.
+	PolicySharedMapMetrics = true
+
 	// ClusterHealthPort is the default value for option.ClusterHealthPort
 	ClusterHealthPort = 4240
 

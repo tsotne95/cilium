@@ -898,6 +898,12 @@ func (e *Endpoint) deleteMaps() []error {
 		errors = append(errors, fmt.Errorf("removing endpoint program from global policy map: %w", err))
 	}
 
+	// Best-effort cleanup of shared overlays when the feature is enabled so the
+	// shared map metadata can accurately reflect active endpoints.
+	if policymap.SharedManagerEnabled() {
+		policymap.RemoveEndpointOverlay(e.ID)
+	}
+
 	// Remove rate limit from bandwidth manager map.
 	if e.bps != 0 {
 		e.bandwidthManager.DeleteBandwidthLimit(e.ID)
@@ -1482,6 +1488,14 @@ func (e *Endpoint) syncPolicyMapWith(realized policy.MapStateMap, withDiffs bool
 
 	if addErrors > 0 || deleteErrors > 0 {
 		err = fmt.Errorf("syncPolicyMapWith failed")
+	}
+
+	if err == nil && policymap.SharedManagerEnabled() && e.desiredPolicy != nil {
+		if syncErr := policymap.SyncEndpointOverlay(e.ID, e.desiredPolicy.Entries()); syncErr != nil {
+			// Do not fail regeneration on overlay issues yet; treat as best effort
+			// while the datapath integration is optional.
+			e.getLogger().WithError(syncErr).Debug("failed to sync shared policy overlay")
+		}
 	}
 	return diffCount, diffs, err
 }
