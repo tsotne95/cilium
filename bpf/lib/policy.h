@@ -7,6 +7,7 @@
 
 #include "common.h"
 #include "dbg.h"
+#include <bpf/compiler.h>
 
 DECLARE_CONFIG(bool, allow_icmp_frag_needed,
 	       "Allow ICMP_FRAG_NEEDED messages when applying Network Policy")
@@ -165,6 +166,245 @@ struct {
 	__uint(max_entries, POLICY_MAP_SIZE);
 	__uint(map_flags, BPF_F_NO_PREALLOC);
 } cilium_policy_v2 __section_maps_btf;
+/* Phase 3 Global Rules & List Maps */
+
+
+struct policy_rule {
+	__u32 identity;
+	__u8  direction;
+	__u8  proto;
+	__be16 dport;
+} __attribute__((packed));
+
+// Phase 2 Legacy Maps (Removed)
+// ENABLE_BPF_ARENA is now required for shared policy map lookups.
+
+#define MAX_SHARED_REFS 16
+#define MAX_PRIVATE_OVERRIDES 8
+
+struct overlay_private_entry {
+	struct policy_key key;
+	struct policy_entry entry;
+} __attribute__((packed));
+
+struct overlay_entry {
+	__u8 shared_ref_count;
+	__u8 private_count;
+	__u8 pad[2];
+	__u32 shared_handles[MAX_SHARED_REFS];
+	struct overlay_private_entry private_overrides[MAX_PRIVATE_OVERRIDES];
+};
+
+struct {
+	__uint(type, BPF_MAP_TYPE_HASH);
+	__type(key, __u32);
+	__type(value, struct overlay_entry);
+	__uint(pinning, LIBBPF_PIN_BY_NAME);
+	__uint(max_entries, POLICY_MAP_SIZE);
+} cilium_policy_overlay __section_maps_btf;
+
+
+static __always_inline int
+policy_key_matches(struct policy_key *rule_key, struct policy_key *packet_key)
+{
+	__u32 prefixlen = rule_key->lpm_key.prefixlen;
+	__u8 *rule_data = (__u8 *)rule_key + sizeof(struct bpf_lpm_trie_key);
+	__u8 *pkt_data  = (__u8 *)packet_key + sizeof(struct bpf_lpm_trie_key);
+	unsigned int i;
+	
+	/* Match full bytes */
+	#pragma unroll
+	for (i = 0; i < 8; i++) {
+		if (i >= prefixlen / 8) break;
+		if (rule_data[i] != pkt_data[i]) return 0;
+	}
+
+	/* Match remaining bits */
+	__u8 bits = prefixlen % 8;
+	if (bits) {
+		__u8 mask = (__u8)(0xff << (8 - bits));
+		if ((rule_data[i] & mask) != (pkt_data[i] & mask)) return 0;
+	}
+	return 1;
+}
+
+static __always_inline void
+policy_update_best(struct policy_entry **best, struct policy_entry *cand, bool *best_is_l3, bool cand_is_l3)
+{
+	if (!cand) return;
+	if (!*best) {
+		*best = cand;
+		*best_is_l3 = cand_is_l3;
+		return;
+	}
+	if (cand->precedence > (*best)->precedence) {
+		*best = cand;
+		*best_is_l3 = cand_is_l3;
+	} else if (cand->precedence == (*best)->precedence) {
+		if (cand->lpm_prefix_length > (*best)->lpm_prefix_length) {
+			*best = cand;
+			*best_is_l3 = cand_is_l3;
+		}
+	}
+}
+
+static __always_inline bool
+policy_lookup_shared(__u32 local_id, __u32 remote_id, __u8 direction,
+		     __u8 proto, __be16 port, bool *is_l3_match, struct policy_entry *result)
+{
+	if (!result) return false;
+
+	struct overlay_entry *overlay = map_lookup_elem(&cilium_policy_overlay, &local_id);
+	if (!overlay)
+		return false;
+
+	struct policy_key pkt_key = {
+		.lpm_key = { 0 },
+		.sec_label = remote_id,
+		.egress = (direction == POLICY_EGRESS) ? 1 : 0,
+		.pad = 0,
+		.protocol = proto,
+		.dport = port,
+	};
+	
+	/* Pre-initialize match flags */
+	*is_l3_match = false;
+	bool found = false;
+	unsigned int i;
+
+	/* 1. Check Private Overrides (highest precedence) */
+	#pragma unroll
+	for (i = 0; i < MAX_PRIVATE_OVERRIDES; i++) {
+		if (i >= overlay->private_count) break;
+		struct overlay_private_entry *p = &overlay->private_overrides[i];
+		if (policy_key_matches(&p->key, &pkt_key)) {
+			bool l3 = (p->key.lpm_key.prefixlen >= 32);
+			if (!found || p->entry.precedence > result->precedence || 
+			    (p->entry.precedence == result->precedence && p->entry.lpm_prefix_length > result->lpm_prefix_length)) {
+				*result = p->entry;
+				*is_l3_match = l3;
+				found = true;
+			}
+			if (result->deny && result->precedence == MAX_PRECEDENCE)
+				return true;
+		}
+	}
+
+	/* If found private override, return it. Logic suggests we might check shared too?
+	   No, private overrides usually trump shared if higher precedence.
+	   But simplified logic here: if found private, we use it. 
+	   (Legacy logic kept best_policy updated). 
+	   Let's keep updating 'result' if we find better in shared.
+	*/
+
+	/* Phase 3 Lookup: Traverse Rule Set List */
+	if (overlay->shared_ref_count > 0) {
+#ifdef ENABLE_BPF_ARENA
+		__u32 next_node_id = overlay->shared_handles[0];
+		
+
+		#define MAX_RULE_CHAIN 100
+		
+		#if !defined(BPF_MAP_TYPE_ARENA)
+		#define BPF_MAP_TYPE_ARENA 33
+		#endif
+		
+		struct rule_set_array {
+			__u16 count;
+			__u16 capacity;
+			struct policy_rule rules[];
+		} __attribute__((packed));
+		
+		/* Arena Map Declaration - must match Go definition */
+		struct {
+			__uint(type, BPF_MAP_TYPE_ARENA);
+			__uint(map_flags, (1U << 10)); /* BPF_F_MMAPABLE */
+			__uint(max_entries, 512); /* 512 Pages = 2MB */
+			__uint(key_size, 0);
+			__uint(value_size, 0);
+		} cilium_policy_a __section_maps_btf;
+		
+		/* Arena Traversal */
+		__u64 page_idx = 0;
+		void *base = map_lookup_elem(&cilium_policy_a, &page_idx);
+		if (base) {
+			struct rule_set_array *arr = (struct rule_set_array *)(base + next_node_id);
+			 __u32 count = arr->count;
+			 if (count > 0xFFFF) count = 0xFFFF; // Safety cap
+
+			 __u32 targets[2];
+			 targets[0] = remote_id;
+			 targets[1] = 0;
+
+			 /* Check both Specific Identity and Wildcard Identity */
+			 #pragma unroll
+			 for (int t = 0; t < 2; t++) {
+			 	__u32 target = targets[t];
+				if (t == 1 && target == remote_id) continue; /* Don't check 0 twice if remote_id is 0 */
+
+				/* Binary Search Lower Bound */
+				int L = 0, R = count - 1;
+				int start_idx = -1;
+
+				#pragma unroll
+				for (int j = 0; j < 20; j++) {
+					if (L > R) break;
+					int mid = L + (R - L) / 2;
+					/* Bounds check for verifier entitlement */
+					if (mid >= 0xFFFF) break; 
+					
+					struct policy_rule *rule = &arr->rules[mid];
+					if (rule->identity >= target) {
+						start_idx = mid;
+						R = mid - 1;
+					} else {
+						L = mid + 1;
+					}
+				}
+
+				/* Scan forward for matches */
+				if (start_idx >= 0) {
+					int idx = start_idx;
+					#pragma unroll
+					for (int k = 0; k < 20; k++) {
+						if (idx >= count) break;
+						struct policy_rule *rule = &arr->rules[idx];
+						
+						if (rule->identity != target) break;
+
+						/* Check other fields */
+						if (rule->direction != ((direction == POLICY_EGRESS) ? 1 : 0)) goto next_rule;
+						if (rule->proto != 0 && rule->proto != proto) goto next_rule;
+						if (rule->dport != 0 && rule->dport != port) goto next_rule;
+
+						/* Match Found! */
+						__u8 p_len = 0;
+						if (rule->proto) p_len += 8;
+						if (rule->dport) p_len += 16;
+						
+						__u32 precedence = 0; 
+
+						if (!found || precedence > result->precedence ||
+						    (precedence == result->precedence && p_len > result->lpm_prefix_length)) {
+							result->proxy_port = 0; 
+							result->deny = 0;
+							result->precedence = precedence;
+							result->lpm_prefix_length = p_len;
+							result->cookie = 0;
+							
+							*is_l3_match = (rule->identity != 0);
+							found = true;
+						}
+next_rule:
+						idx++;
+					}
+				}
+			 }
+		}
+#endif /* ENABLE_BPF_ARENA */
+	} return found;
+
+}
 
 /* Return a verdict for the chosen 'policy', possibly propagating the auth type from 'policy2', if
  * non-NULL and of the same precedence.
@@ -289,14 +529,33 @@ __policy_can_access(const void *map, struct __ctx_buff *ctx, __u32 local_id,
 	/* L3 policy can be chosen without the 2nd lookup if it has the highest possible precedence
 	 * value (which implies that it is a deny).
 	 */
-	if (likely(policy && policy->precedence == MAX_PRECEDENCE)) {
-		l4policy = NULL;
-		goto check_policy;
+	if (likely(policy)) {
+		if (policy->precedence == MAX_PRECEDENCE) {
+			l4policy = NULL;
+			goto check_policy;
+		}
 	}
 
 	/* L4-only lookup: a wildcard match on L3 identity and LPM match on L4 proto and port. */
 	key.sec_label = 0;
 	l4policy = map_lookup_elem(map, &key);
+
+	/* If neither L3 nor L4 policy is found in the legacy map, try the shared map.
+	 * We use nested conditions to avoid compiler optimizations that might merge
+	 * these checks into incompatible pointer arithmetic (e.g. ptr | ptr).
+	 */
+	if (!policy) {
+		/* Barrier to ensure the compiler doesn't merge the checks */
+		bpf_barrier();
+		if (!l4policy) {
+			bool is_l3_match = false;
+			struct policy_entry shared_best = {0};
+			bool matched = policy_lookup_shared(local_id, remote_id, (__u8)dir, proto, dport, &is_l3_match, &shared_best);
+			if (matched) {
+				return __policy_check(&shared_best, NULL, ext_err, proxy_port, cookie);
+			}
+		}
+	}
 
 	/* The found l4policy is chosen if:
 	 * - only l4 policy was found, or if both policies are found, and:

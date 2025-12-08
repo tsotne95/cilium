@@ -18,6 +18,7 @@ import (
 	"github.com/cilium/cilium/pkg/maps/metricsmap"
 	"github.com/cilium/cilium/pkg/maps/nat"
 	"github.com/cilium/cilium/pkg/maps/neighborsmap"
+	"github.com/cilium/cilium/pkg/maps/policymap"
 	"github.com/cilium/cilium/pkg/option"
 )
 
@@ -128,6 +129,14 @@ func initMaps(params daemonParams) error {
 			option.Config.EnableIPv6); err != nil {
 			return fmt.Errorf("initializing NAT retries map: %w", err)
 		}
+	}
+
+	if err := policymap.InitSharedPolicyMaps(params.PolicyConfig.BpfPolicyMapMax); err != nil {
+		return fmt.Errorf("initializing shared policy maps: %w", err)
+	}
+
+	if err := policymap.InitUniversalMaps(); err != nil {
+		return fmt.Errorf("initializing universal policy maps: %w", err)
 	}
 
 	if option.Config.EnableIPv4FragmentsTracking {

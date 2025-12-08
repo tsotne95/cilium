@@ -1,0 +1,154 @@
+=== RUN   TestArenaE2E
+    arena_e2e_test.go:38: Successfully compiled BPF object
+    arena_e2e_test.go:42: Skipping Arena E2E test: Requires root privileges
+--- SKIP: TestArenaE2E (0.05s)
+=== RUN   TestArenaMapPrototype
+    arena_prototype_test.go:39: Skipping Arena test: Failed to create map (Kernel support?): creating map: map create: operation not permitted (MEMLOCK may be too low, consider rlimit.RemoveMemlock)
+--- SKIP: TestArenaMapPrototype (0.00s)
+=== RUN   TestMemorySavings_LowScale
+DEBUG SyncEndpointOverlay epID=1 Enabled=true
+DEBUG SyncEndpointOverlay epID=1 Candidates=30
+DEBUG SyncEndpointOverlay epID=1 GroupID=12826 SharedCandidates=30
+DEBUG SyncEndpointOverlay epID=2 Enabled=true
+DEBUG SyncEndpointOverlay epID=2 Candidates=30
+DEBUG SyncEndpointOverlay epID=2 GroupID=12826 SharedCandidates=30
+DEBUG SyncEndpointOverlay epID=3 Enabled=true
+DEBUG SyncEndpointOverlay epID=3 Candidates=30
+DEBUG SyncEndpointOverlay epID=3 GroupID=12826 SharedCandidates=30
+DEBUG SyncEndpointOverlay epID=4 Enabled=true
+DEBUG SyncEndpointOverlay epID=4 Candidates=30
+DEBUG SyncEndpointOverlay epID=4 GroupID=12826 SharedCandidates=30
+DEBUG SyncEndpointOverlay epID=5 Enabled=true
+DEBUG SyncEndpointOverlay epID=5 Candidates=30
+DEBUG SyncEndpointOverlay epID=5 GroupID=12826 SharedCandidates=30
+DEBUG SyncEndpointOverlay epID=6 Enabled=true
+DEBUG SyncEndpointOverlay epID=6 Candidates=30
+DEBUG SyncEndpointOverlay epID=6 GroupID=12826 SharedCandidates=30
+DEBUG SyncEndpointOverlay epID=7 Enabled=true
+DEBUG SyncEndpointOverlay epID=7 Candidates=30
+DEBUG SyncEndpointOverlay epID=7 GroupID=12826 SharedCandidates=30
+DEBUG SyncEndpointOverlay epID=8 Enabled=true
+DEBUG SyncEndpointOverlay epID=8 Candidates=30
+DEBUG SyncEndpointOverlay epID=8 GroupID=12826 SharedCandidates=30
+DEBUG SyncEndpointOverlay epID=9 Enabled=true
+DEBUG SyncEndpointOverlay epID=9 Candidates=30
+DEBUG SyncEndpointOverlay epID=9 GroupID=12826 SharedCandidates=30
+DEBUG SyncEndpointOverlay epID=10 Enabled=true
+DEBUG SyncEndpointOverlay epID=10 Candidates=30
+DEBUG SyncEndpointOverlay epID=10 GroupID=12826 SharedCandidates=30
+    memory_savings_test.go:98: Scenario: 10 Endpoints, 30 Rules each
+    memory_savings_test.go:99: Legacy Mode (Estimated Cost): 300 entries
+    memory_savings_test.go:100: Shared Mode (Actual Cost):    10 entries (0 shared + 10 overlays)
+    memory_savings_test.go:102: 
+        	Error Trace:	/usr/local/google/home/tsotne/repos/cilium/pkg/maps/policymap/memory_savings_test.go:102
+        	Error:      	Not equal: 
+        	            	expected: 30
+        	            	actual  : 0
+        	Test:       	TestMemorySavings_LowScale
+        	Messages:   	Shared map should contain exactly the unique rules
+--- FAIL: TestMemorySavings_LowScale (0.13s)
+=== RUN   TestPolicySharedMapMetrics
+DEBUG SyncEndpointOverlay epID=999 Enabled=true
+DEBUG SyncEndpointOverlay epID=999 Candidates=2
+DEBUG SyncEndpointOverlay epID=999 GroupID=18433 SharedCandidates=2
+--- PASS: TestPolicySharedMapMetrics (0.14s)
+=== RUN   TestPrivilegedPolicyMapDumpToSlice
+    policymap_privileged_test.go:33: Set PRIVILEGED_TESTS to run this test
+--- SKIP: TestPrivilegedPolicyMapDumpToSlice (0.00s)
+=== RUN   TestPrivilegedDeleteNonexistentKey
+    policymap_privileged_test.go:33: Set PRIVILEGED_TESTS to run this test
+--- SKIP: TestPrivilegedDeleteNonexistentKey (0.00s)
+=== RUN   TestPrivilegedDenyPolicyMapDumpToSlice
+    policymap_privileged_test.go:33: Set PRIVILEGED_TESTS to run this test
+--- SKIP: TestPrivilegedDenyPolicyMapDumpToSlice (0.00s)
+=== RUN   TestPolicyEntriesDump_Less
+--- PASS: TestPolicyEntriesDump_Less (0.00s)
+=== RUN   TestPolicyMapWildcarding
+--- PASS: TestPolicyMapWildcarding (0.00s)
+=== RUN   TestPortProtoString
+--- PASS: TestPortProtoString (0.00s)
+=== RUN   TestNewEntryFromPolicyEntry
+=== RUN   TestNewEntryFromPolicyEntry/case-0
+=== RUN   TestNewEntryFromPolicyEntry/case-1
+=== RUN   TestNewEntryFromPolicyEntry/case-2
+=== RUN   TestNewEntryFromPolicyEntry/case-3
+--- PASS: TestNewEntryFromPolicyEntry (0.00s)
+    --- PASS: TestNewEntryFromPolicyEntry/case-0 (0.00s)
+    --- PASS: TestNewEntryFromPolicyEntry/case-1 (0.00s)
+    --- PASS: TestNewEntryFromPolicyEntry/case-2 (0.00s)
+    --- PASS: TestNewEntryFromPolicyEntry/case-3 (0.00s)
+=== RUN   TestRuleSetAllocator_Phase3_Integration
+--- PASS: TestRuleSetAllocator_Phase3_Integration (0.00s)
+=== RUN   TestRuleSetAllocator_Hash
+--- PASS: TestRuleSetAllocator_Hash (0.00s)
+=== RUN   TestRuleSetAllocator_Allocation
+--- PASS: TestRuleSetAllocator_Allocation (0.00s)
+=== RUN   TestRuleSetAllocator_Release
+--- PASS: TestRuleSetAllocator_Release (0.00s)
+=== RUN   TestRuleSetAllocator_ReleaseByID
+--- PASS: TestRuleSetAllocator_ReleaseByID (0.00s)
+=== RUN   TestSyncEndpointOverlay_Deduplication
+DEBUG SyncEndpointOverlay epID=1001 Enabled=true
+DEBUG SyncEndpointOverlay epID=1001 Candidates=2
+DEBUG SyncEndpointOverlay epID=1001 GroupID=52 SharedCandidates=2
+DEBUG SyncEndpointOverlay epID=1002 Enabled=true
+DEBUG SyncEndpointOverlay epID=1002 Candidates=2
+DEBUG SyncEndpointOverlay epID=1002 GroupID=52 SharedCandidates=2
+--- PASS: TestSyncEndpointOverlay_Deduplication (0.01s)
+=== RUN   TestSyncEndpointOverlayStoresOverrides
+DEBUG SyncEndpointOverlay epID=10 Enabled=true
+DEBUG SyncEndpointOverlay epID=10 Candidates=1
+DEBUG SyncEndpointOverlay epID=10 GroupID=81 SharedCandidates=1
+--- PASS: TestSyncEndpointOverlayStoresOverrides (0.00s)
+=== RUN   TestSharedManager_WideCIDRDedup
+DEBUG SyncEndpointOverlay epID=1000 Enabled=true
+DEBUG SyncEndpointOverlay epID=1000 Candidates=7
+DEBUG SyncEndpointOverlay epID=1000 GroupID=52358 SharedCandidates=7
+DEBUG SyncEndpointOverlay epID=1001 Enabled=true
+DEBUG SyncEndpointOverlay epID=1001 Candidates=7
+DEBUG SyncEndpointOverlay epID=1001 GroupID=52358 SharedCandidates=7
+DEBUG SyncEndpointOverlay epID=1002 Enabled=true
+DEBUG SyncEndpointOverlay epID=1002 Candidates=7
+DEBUG SyncEndpointOverlay epID=1002 GroupID=52358 SharedCandidates=7
+DEBUG SyncEndpointOverlay epID=1003 Enabled=true
+DEBUG SyncEndpointOverlay epID=1003 Candidates=7
+DEBUG SyncEndpointOverlay epID=1003 GroupID=52358 SharedCandidates=7
+DEBUG SyncEndpointOverlay epID=1004 Enabled=true
+DEBUG SyncEndpointOverlay epID=1004 Candidates=7
+DEBUG SyncEndpointOverlay epID=1004 GroupID=52358 SharedCandidates=7
+DEBUG SyncEndpointOverlay epID=1005 Enabled=true
+DEBUG SyncEndpointOverlay epID=1005 Candidates=7
+DEBUG SyncEndpointOverlay epID=1005 GroupID=52358 SharedCandidates=7
+DEBUG SyncEndpointOverlay epID=1006 Enabled=true
+DEBUG SyncEndpointOverlay epID=1006 Candidates=7
+DEBUG SyncEndpointOverlay epID=1006 GroupID=52358 SharedCandidates=7
+DEBUG SyncEndpointOverlay epID=1007 Enabled=true
+DEBUG SyncEndpointOverlay epID=1007 Candidates=7
+DEBUG SyncEndpointOverlay epID=1007 GroupID=52358 SharedCandidates=7
+DEBUG SyncEndpointOverlay epID=1008 Enabled=true
+DEBUG SyncEndpointOverlay epID=1008 Candidates=7
+DEBUG SyncEndpointOverlay epID=1008 GroupID=52358 SharedCandidates=7
+DEBUG SyncEndpointOverlay epID=1009 Enabled=true
+DEBUG SyncEndpointOverlay epID=1009 Candidates=7
+DEBUG SyncEndpointOverlay epID=1009 GroupID=52358 SharedCandidates=7
+    sharedmanager_wide_cidr_test.go:100: Verified Wide CIDR Dedup: 10 Endpoints mapping to RuleSetID 52358 with RefCount 10
+--- PASS: TestSharedManager_WideCIDRDedup (0.01s)
+=== RUN   TestOverlayClamp
+--- PASS: TestOverlayClamp (0.00s)
+=== RUN   TestSharedStoreLifecycle
+--- PASS: TestSharedStoreLifecycle (0.00s)
+=== RUN   TestSharedStoreGarbageCollectsStale
+--- PASS: TestSharedStoreGarbageCollectsStale (0.00s)
+=== RUN   TestSharedPolicyPrefixBits
+--- PASS: TestSharedPolicyPrefixBits (0.00s)
+=== RUN   TestInitSharedPolicyMapsDisabled
+--- PASS: TestInitSharedPolicyMapsDisabled (0.00s)
+=== RUN   TestPrivilegedStatMap
+    policymap_privileged_test.go:33: Set PRIVILEGED_TESTS to run this test
+--- SKIP: TestPrivilegedStatMap (0.00s)
+=== RUN   TestUniversalDedup_PartialOverlap
+SUCCESS: Stored 3 unique rules for 4 requests. Saved 1 rule slot.
+--- PASS: TestUniversalDedup_PartialOverlap (0.00s)
+FAIL
+FAIL	github.com/cilium/cilium/pkg/maps/policymap	0.668s
+FAIL

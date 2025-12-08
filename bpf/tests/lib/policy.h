@@ -103,3 +103,36 @@ static __always_inline void policy_delete_egress_all_entry(void)
 {
 	policy_delete_egress_entry(0, 0, 0);
 }
+
+static __always_inline void
+policy_add_shared_entry(__u32 handle, __u32 identity, __u8 dir, __u8 proto, __u16 port, bool deny)
+{
+	__u8 wildcard_bits = policy_calc_wildcard_bits(proto, port);
+	__u32 key_prefix_len = (sizeof(struct shared_policy_key) - sizeof(struct bpf_lpm_trie_key)) * 8 - wildcard_bits;
+	__u8 value_prefix_len = LPM_FULL_PREFIX_BITS - wildcard_bits;
+
+	struct shared_policy_key key = {
+		.lpm_key = { key_prefix_len, {} },
+		.group_prefix = handle,
+		.identity = identity,
+		.traffic_direction = dir,
+		.proto = proto,
+		.port = port,
+	};
+	struct policy_entry value = {
+		.deny = deny,
+		.lpm_prefix_length = value_prefix_len,
+	};
+
+	map_update_elem(&cilium_policy_shared, &key, &value, BPF_ANY);
+}
+
+static __always_inline void
+policy_update_overlay(__u32 endpoint_id, __u32 shared_handle)
+{
+	struct overlay_entry value = {0};
+	value.shared_ref_count = 1;
+	value.shared_handles[0] = shared_handle;
+	
+	map_update_elem(&cilium_policy_overlay, &endpoint_id, &value, BPF_ANY);
+}

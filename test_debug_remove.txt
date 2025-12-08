@@ -1,0 +1,12 @@
+=== RUN   TestSyncEndpointOverlay_Deduplication
+DEBUG RemoveEndpointOverlay: ReleaseByID(88) for epID=1001
+DEBUG RemoveEndpointOverlay: ReleaseByID(88) for epID=1002
+    sharedmanager_dedup_test.go:164: 
+        	Error Trace:	/usr/local/google/home/tsotne/repos/cilium/pkg/maps/policymap/sharedmanager_dedup_test.go:164
+        	Error:      	Should be false
+        	Test:       	TestSyncEndpointOverlay_Deduplication
+        	Messages:   	GroupID should be released after all endpoints removed
+--- FAIL: TestSyncEndpointOverlay_Deduplication (0.00s)
+FAIL
+FAIL	github.com/cilium/cilium/pkg/maps/policymap	0.309s
+FAIL

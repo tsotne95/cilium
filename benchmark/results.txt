@@ -1,0 +1,9 @@
+ Benchmark Results 
+=== Mode: legacy ===
+Total Legacy Map Entries: 5326
+Total Shared Map Entries: 0
+Agent Memory Usage: 221921280 bytes
+=== Mode: shared ===
+Total Legacy Map Entries: 26
+Total Shared Map Entries: 510
+Agent Memory Usage: 318210048 bytes

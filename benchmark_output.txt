@@ -1,0 +1,13 @@
+SUCCESS: Stored 3 unique rules for 4 requests. Saved 1 rule slot.
+goos: linux
+goarch: amd64
+pkg: github.com/cilium/cilium/pkg/maps/policymap
+cpu: Intel(R) Xeon(R) CPU @ 2.00GHz
+BenchmarkRuleSetAllocator_Phase2-16              	  650442	      1803 ns/op	     320 B/op	      10 allocs/op
+BenchmarkRuleSetAllocator_Phase3-16              	  625838	      1787 ns/op	     320 B/op	      10 allocs/op
+BenchmarkRuleSetAllocator_Phase3_ManyRules-16    	   26925	     47363 ns/op	    5994 B/op	      16 allocs/op
+BenchmarkRuleSetAllocator_Phase2_ManyRules-16    	   26985	     46141 ns/op	    5993 B/op	      16 allocs/op
+BenchmarkComputeRuleSetHash_2Rules-16            	  631094	      1750 ns/op	     320 B/op	      10 allocs/op
+BenchmarkComputeRuleSetHash_100Rules-16          	   23302	     49972 ns/op	    5993 B/op	      16 allocs/op
+PASS
+ok  	github.com/cilium/cilium/pkg/maps/policymap	11.132s

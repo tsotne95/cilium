@@ -1,0 +1,28 @@
+=== RUN   TestSyncEndpointOverlay_Deduplication
+DEBUG HASH INPUT: 100:0:6:20480|101:0:6:47873|
+DEBUG GetOrAllocate: Hash=4cf681c4a167476a6c008fcdf6d7950a7a71bae77cdc787cef8855923ac2099e
+DEBUG GetOrAllocate: MISS
+DEBUG HASH INPUT: 100:0:6:20480|101:0:6:47873|
+DEBUG GetOrAllocate: Hash=4cf681c4a167476a6c008fcdf6d7950a7a71bae77cdc787cef8855923ac2099e
+DEBUG GetOrAllocate: HIT ID=13
+    sharedmanager_dedup_test.go:128: 
+        	Error Trace:	/usr/local/google/home/tsotne/repos/cilium/pkg/maps/policymap/sharedmanager_dedup_test.go:128
+        	Error:      	Not equal: 
+        	            	expected: 1
+        	            	actual  : 2
+        	Test:       	TestSyncEndpointOverlay_Deduplication
+    sharedmanager_dedup_test.go:129: 
+        	Error Trace:	/usr/local/google/home/tsotne/repos/cilium/pkg/maps/policymap/sharedmanager_dedup_test.go:129
+        	Error:      	Not equal: 
+        	            	expected: 1
+        	            	actual  : 2
+        	Test:       	TestSyncEndpointOverlay_Deduplication
+    sharedmanager_dedup_test.go:162: 
+        	Error Trace:	/usr/local/google/home/tsotne/repos/cilium/pkg/maps/policymap/sharedmanager_dedup_test.go:162
+        	Error:      	Should be false
+        	Test:       	TestSyncEndpointOverlay_Deduplication
+        	Messages:   	GroupID should be released after all endpoints removed
+--- FAIL: TestSyncEndpointOverlay_Deduplication (0.00s)
+FAIL
+FAIL	github.com/cilium/cilium/pkg/maps/policymap	0.305s
+FAIL
